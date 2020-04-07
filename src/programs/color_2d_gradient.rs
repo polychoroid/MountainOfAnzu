@@ -6,9 +6,9 @@ use super::super::common_functions as cf;
 
 pub struct Color2DGradient {
   program: WebGlProgram,
+  color_buffer: WebGlBuffer,
+  index_count: i32,
   rect_vertice_buffer: WebGlBuffer,
-  rect_vertice_array_length: usize,
-  u_color: WebGlUniformLocation,
   u_opacity: WebGlUniformLocation,
   u_transform: WebGlUniformLocation
 }
@@ -21,14 +21,14 @@ impl Color2DGradient {
         super::super::shaders::fragment::color_2d_gradient::SHADER
       ).unwrap();
 
-      let verticies_rect: [f32; 12] = [
+      let verticies_rect: [f32; 8] = [
         0., 1.,
         0., 0.,
         1., 1.,
-        1., 1.,
-        0., 0.,
         1., 0.,
       ];
+
+      let indices_rect: [u16; 6] = [0, 1, 2, 2, 1, 3];
 
       let memory_buffer = wasm_bindgen::memory()
           .dyn_into::<WebAssembly::Memory>()
@@ -43,11 +43,28 @@ impl Color2DGradient {
       gl.bind_buffer(GL::ARRAY_BUFFER, Some(&buffer_rect));
       gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vert_array, GL::STATIC_DRAW);
 
+      let indices_memory_buffer = wasm_bindgen::memory()
+      .dyn_into::<WebAssembly::Memory>()
+      .unwrap()
+      .buffer();
+      let indices_location = indices_rect.as_ptr() as u32 / 2;
+      let indices_array = js_sys::Uint16Array::new(&indices_memory_buffer).subarray(
+          indices_location,
+          indices_location + indices_rect.len() as u32
+      );
+      let buffer_indices = gl.create_buffer().unwrap();
+      gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&buffer_indices));
+      gl.buffer_data_with_array_buffer_view(
+          GL::ELEMENT_ARRAY_BUFFER,
+          &indices_array,
+          GL::STATIC_DRAW,
+      );
+
       Self {
-        u_color: gl.get_uniform_location(&program, "uColor").unwrap(),
+        color_buffer: gl.create_buffer().ok_or("failed to create color buffer").unwrap(),
+        index_count: indices_array.length() as i32,
         u_opacity: gl.get_uniform_location(&program, "uOpacity").unwrap(),
         u_transform: gl.get_uniform_location(&program, "uTransform").unwrap(),
-        rect_vertice_array_length: verticies_rect.len(),
         rect_vertice_buffer: buffer_rect,
         program: program,
       }
@@ -69,13 +86,26 @@ impl Color2DGradient {
     gl.vertex_attrib_pointer_with_i32(0, 2, GL::FLOAT, false, 0, 0);
     gl.enable_vertex_attrib_array(0);
 
-    gl.uniform4f(
-      Some(&self.u_color),
-      0.5,
-      0.,
-      0.5,
-      1.0
-    );
+    gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.color_buffer));
+    gl.vertex_attrib_pointer_with_i32(1, 4, GL::FLOAT, false, 0, 0);
+    gl.enable_vertex_attrib_array(1);
+
+    let colors: [f32; 16] = [
+      1., 0., 0., 1.,
+      0., 1., 0., 1.,
+      0., 0., 1., 1.,
+      1., 1., 1., 1.,
+    ];
+
+    let colors_memory_buffer = wasm_bindgen::memory()
+        .dyn_into::<WebAssembly::Memory>()
+        .unwrap()
+        .buffer();
+
+    let color_vals_location = colors.as_ptr() as u32 / 4;
+    let color_vals_array = js_sys::Float32Array::new(&colors_memory_buffer)
+        .subarray(color_vals_location, color_vals_location + colors.len() as u32);
+    gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &color_vals_array, GL::DYNAMIC_DRAW);
 
     gl.uniform1f(Some(&self.u_opacity), 1.);
 
@@ -94,6 +124,6 @@ impl Color2DGradient {
     let transform_mat = cf::mult_matrix_4(scale_mat, translation_mat);
     gl.uniform_matrix4fv_with_f32_array(Some(&self.u_transform), false, &transform_mat);
 
-    gl.draw_arrays(GL::TRIANGLES, 0, (self.rect_vertice_array_length / 2) as i32);
+    gl.draw_elements_with_i32(GL::TRIANGLES, self.index_count, GL::UNSIGNED_SHORT, 0);
   }
 }
