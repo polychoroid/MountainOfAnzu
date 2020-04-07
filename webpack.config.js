@@ -17,9 +17,8 @@ module.exports = (env, args) => {
                 template: 'index.html'
             }),
             new WasmPackPlugin({
-                crateDirectory: path.resolve(__dirname, 'create'),
-                args: "--log-level warn",
-                extraArgs: "--typescript"
+                crateDirectory: path.resolve(__dirname, '.'),
+                args: "--log-level warn"
             }),
             new webpack.ProvidePlugin({
                 TextDecoder: ['text-encoding', 'TextDecoder'],
