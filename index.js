@@ -4,7 +4,6 @@ const gl = canvas.getContext('webgl', { antialias: true});
 const FPS = 30.0; // Frames per second 
 const FPS_THROTTLE = 1000.0 / FPS; // Frame limit to 30
 
-
 rust.then(m => {
   if(!gl) {
     alert('Failed to initailize WebGL');

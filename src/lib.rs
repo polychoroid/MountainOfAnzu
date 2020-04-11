@@ -50,7 +50,7 @@ impl GameClient {
 
     let curr_state = app_state::get_curr_state();
 
-    self.program_color_2d.render(
+    self.program_color_2d_gradient.render(
       &self.gl,
       curr_state.control_bottom,
       curr_state.control_top,
@@ -60,14 +60,15 @@ impl GameClient {
       curr_state.canvas_width
     );
 
-    self.program_color_2d_gradient.render(
+    self.program_color_2d.render(
       &self.gl,
-      curr_state.control_bottom + 20.,
-      curr_state.control_top - 20.,
-      curr_state.control_left + 20.,
-      curr_state.control_right - 20.,
+      curr_state.control_bottom + 60.,
+      curr_state.control_top - 60.,
+      curr_state.control_left + 60.,
+      curr_state.control_right - 60.,
       curr_state.canvas_height,
       curr_state.canvas_width
-    );
+    );   
+
   }
 }
