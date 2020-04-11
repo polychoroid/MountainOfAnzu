@@ -6,8 +6,13 @@ Action RPG to teach myself rust/wasm/webgl. There's not much going on here yet, 
 It's real easy.
 
 1. Clone the development branch
-1.     npm install
-1.     npm run dev
+2. [Install npm](https://www.npmjs.com/get-npm)
+3. [Install rustup](https://www.rust-lang.org/tools/install)
+4. [Install wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+5.     npm install
+6.     wasm-pack build
+7.     npm run dev
+8. Behold the squares
 
 <!-- ### Prerequisites
 
