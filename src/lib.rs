@@ -20,6 +20,7 @@ extern "C" {
 #[wasm_bindgen]
 pub struct GameClient {
   gl: WebGlRenderingContext,
+  program_sprite: programs::Sprite,
   program_color_2d: programs::Color2D,
   program_color_2d_gradient: programs::Color2DGradient,
 }
@@ -32,9 +33,10 @@ impl GameClient {
     console_error_panic_hook::set_once();
     let gl = gl_setup::initialize_webgl_context().unwrap();
 
-    Self {      
-      program_color_2d:  programs::Color2D::new(&gl),
-      program_color_2d_gradient:  programs::Color2DGradient::new(&gl),
+    Self {
+      program_sprite: programs::Sprite::new(&gl),
+      program_color_2d: programs::Color2D::new(&gl),
+      program_color_2d_gradient: programs::Color2DGradient::new(&gl),
       gl: gl,
     }
   }
@@ -69,6 +71,16 @@ impl GameClient {
       curr_state.canvas_height,
       curr_state.canvas_width
     );   
+
+     self.program_sprite.render(
+      &self.gl,
+      curr_state.control_bottom + 150.,
+      curr_state.control_top - 150.,
+      curr_state.control_left + 150.,
+      curr_state.control_right - 150.,
+      curr_state.canvas_height,
+      curr_state.canvas_width
+    );      
 
   }
 }
