@@ -21,8 +21,7 @@ extern "C" {
 pub struct GameClient {
   gl: WebGlRenderingContext,
   program_sprite: programs::Sprite,
-  program_color_2d: programs::Color2D,
-  program_color_2d_gradient: programs::Color2DGradient,
+  background: programs::Color2DGradient,
 }
 
 #[wasm_bindgen]
@@ -34,9 +33,8 @@ impl GameClient {
     let gl = gl_setup::initialize_webgl_context().unwrap();
 
     Self {
-      program_sprite: programs::Sprite::new(&gl),
-      program_color_2d: programs::Color2D::new(&gl),
-      program_color_2d_gradient: programs::Color2DGradient::new(&gl),
+      program_sprite: programs::Sprite::new(&gl, 32, 32),
+      background: programs::Color2DGradient::new(&gl),
       gl: gl,
     }
   }
@@ -52,32 +50,16 @@ impl GameClient {
 
     let curr_state = app_state::get_curr_state();
 
-    self.program_color_2d_gradient.render(
+    self.background.render(
+      &self.gl
+    );
+
+     self.program_sprite.render(
       &self.gl,
       curr_state.control_bottom,
       curr_state.control_top,
       curr_state.control_left,
       curr_state.control_right,
-      curr_state.canvas_height,
-      curr_state.canvas_width
-    );
-
-    self.program_color_2d.render(
-      &self.gl,
-      curr_state.control_bottom + 60.,
-      curr_state.control_top - 60.,
-      curr_state.control_left + 60.,
-      curr_state.control_right - 60.,
-      curr_state.canvas_height,
-      curr_state.canvas_width
-    );   
-
-     self.program_sprite.render(
-      &self.gl,
-      curr_state.control_bottom + 150.,
-      curr_state.control_top - 150.,
-      curr_state.control_left + 150.,
-      curr_state.control_right - 150.,
       curr_state.canvas_height,
       curr_state.canvas_width
     );      

@@ -72,13 +72,7 @@ impl Color2DGradient {
 
   pub fn render(
     &self,
-    gl: &WebGlRenderingContext,
-    bottom: f32,
-    top: f32,
-    left: f32,
-    right: f32,
-    canvas_height: f32,
-    canvas_width: f32
+    gl: &WebGlRenderingContext
   ) {
     gl.use_program(Some(&self.program));
     
@@ -91,10 +85,10 @@ impl Color2DGradient {
     gl.enable_vertex_attrib_array(1);
 
     let colors: [f32; 16] = [
-      1., 0., 0., 1.,
-      0., 1., 0., 1.,
-      0., 0., 1., 1.,
-      1., 1., 1., 1.,
+      1., 0., 0., 0.25,
+      0., 1., 0., 0.25,
+      0., 0., 1., 0.25,
+      1., 1., 1., 0.25,
     ];
 
     let colors_memory_buffer = wasm_bindgen::memory()
@@ -110,14 +104,14 @@ impl Color2DGradient {
     gl.uniform1f(Some(&self.u_opacity), 1.);
 
     let translation_mat = cf::translation_matrix(
-        2. * left / canvas_width - 1.,
-        2. * bottom / canvas_height - 1.,
-        0.,
+        -1.,
+        -1.,
+        -1.,
     );
 
     let scale_mat = cf::scaling_matrix(
-        2. * (right - left) / canvas_width,
-        2. * (top - bottom) / canvas_height,
+        2.,
+        2.,
         0.,
     );
 
