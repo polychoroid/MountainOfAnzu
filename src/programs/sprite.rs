@@ -12,7 +12,9 @@ pub struct Sprite {
   u_opacity: WebGlUniformLocation,
   u_transform: WebGlUniformLocation,
   width: f32,
-  height: f32
+  height: f32,
+  position: Vec<f32>,
+  velocity: Vec<f32>
 }
 
 impl Sprite {
@@ -64,6 +66,9 @@ impl Sprite {
           GL::STATIC_DRAW,
       );
 
+      let position = vec![0., 0.];
+      let velocity = vec![0.01, 0.];
+
       Self {
         u_color: gl.get_uniform_location(&program, "uColor").unwrap(),
         index_count: indices_array.length() as i32,
@@ -72,7 +77,9 @@ impl Sprite {
         sprite_box_buffer: sprite_box_buffer,
         program: program,
         width: width as f32,
-        height: height as f32
+        height: height as f32,
+        position: position,
+        velocity: velocity
       }
   }
 
@@ -97,20 +104,34 @@ impl Sprite {
       1.0,
       1.0,
       1.0,
-      1.0
+      0.9
     );
 
-    gl.uniform1f(Some(&self.u_opacity), 0.9);
+    gl.uniform1f(Some(&self.u_opacity), 1.);
+
+    let mut position = self.position;
+    let mut velocity = self.velocity;
+
+    if position[0] >= 1.0 && velocity[0] > 0.
+      {
+        position[0] += velocity[0];
+      }
+
+    if position[0] <= 1.0 && velocity[0] > 0.
+    {
+      velocity[0] = -1.;
+      position[0] += velocity[0];
+    }
 
     let translation_mat = cf::translation_matrix(
-        2. * left / canvas_width - 1.,
-        2. * bottom / canvas_height - 1.,
+        position[0],
+        position[1],
         0.,
     );
 
     let scale_mat = cf::scaling_matrix(
-        0.01 + self.width / canvas_width,
-        0.01 + self.height / canvas_height,
+        self.width / canvas_width,
+        self.height / canvas_height,
         0.,
     );
 
