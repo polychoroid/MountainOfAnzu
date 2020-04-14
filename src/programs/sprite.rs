@@ -18,7 +18,11 @@ pub struct Sprite {
 }
 
 impl Sprite {
-  pub fn new(gl: &WebGlRenderingContext, width: u8, height: u8) -> Self {
+  pub fn new(gl: &WebGlRenderingContext,
+      width: u8,
+      height: u8,
+      position: Vec<f32>,
+      velocity: Vec<f32>) -> Self {
       let program = cf::link_program(
         &gl,
         super::super::shaders::vertex::sprite::SHADER,
@@ -66,9 +70,6 @@ impl Sprite {
           GL::STATIC_DRAW,
       );
 
-      let position = vec![0., 0.];
-      let velocity = vec![0.01, 0.];
-
       Self {
         u_color: gl.get_uniform_location(&program, "uColor").unwrap(),
         index_count: indices_array.length() as i32,
@@ -83,8 +84,46 @@ impl Sprite {
       }
   }
 
+  fn update_position(position: &mut Vec<f32>, velocity: &mut Vec<f32>)
+  {
+    // TODO: This is so procedural it hurts my feelings.
+    if position[0] <= 1.0 && position[0] >= -1.0
+    {
+      position[0] += velocity[0];
+    }
+
+    if position[0] >= 1.0
+    {
+      velocity[0] = velocity[0] * -1.0;
+      position[0] = 1.0;
+    }
+
+    if position[0] <= -1.0
+    {
+      velocity[0] = velocity[0] * -1.0;
+      position[0] = -1.0;
+    }
+
+    if position[1] <= 1.0 && position[1] >= -1.0
+    {
+      position[1] += velocity[1];
+    }
+
+    if position[1] >= 1.0
+    {
+      velocity[1] = velocity[1] * -1.0;
+      position[1] = 1.0;
+    }
+
+    if position[1] <= -1.0
+    {
+      velocity[1] = velocity[1] * -1.0;
+      position[1] = -1.0;
+    }
+  }
+
   pub fn render(
-    &self,
+    &mut self,
     gl: &WebGlRenderingContext,
     bottom: f32,
     _top: f32,
@@ -109,23 +148,11 @@ impl Sprite {
 
     gl.uniform1f(Some(&self.u_opacity), 1.);
 
-    let mut position = self.position;
-    let mut velocity = self.velocity;
-
-    if position[0] >= 1.0 && velocity[0] > 0.
-      {
-        position[0] += velocity[0];
-      }
-
-    if position[0] <= 1.0 && velocity[0] > 0.
-    {
-      velocity[0] = -1.;
-      position[0] += velocity[0];
-    }
+    Sprite::update_position(&mut self.position, &mut self.velocity);
 
     let translation_mat = cf::translation_matrix(
-        position[0],
-        position[1],
+        self.position[1],
+        self.position[0],
         0.,
     );
 
