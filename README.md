@@ -1,5 +1,5 @@
 # Mountain Of Anzu
-Action RPG to teach myself rust/wasm/webgl. There's not much going on here yet, the whole thing just puts two squares into a webgl canvas at this point. But soon. . . there might be three squares.
+Action RPG to teach myself rust/wasm/webgl. There's not much going on here yet, a bunch of squares and recangles bounce around a colorful background.
 
 ## Getting Started
 
