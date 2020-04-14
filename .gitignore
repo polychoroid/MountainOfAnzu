@@ -21,7 +21,7 @@ Cargo.lock
 /test/ChangesAndRemovals
 /benchmark/js
 /benchmark/fixtures
-/examples/**/dist
+**/dist
 /coverage
 .DS_Store
 *.log
