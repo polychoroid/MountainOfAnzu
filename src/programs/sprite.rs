@@ -125,9 +125,9 @@ impl Sprite {
   pub fn render(
     &mut self,
     gl: &WebGlRenderingContext,
-    bottom: f32,
+    _bottom: f32,
     _top: f32,
-    left: f32,
+    _left: f32,
     _right: f32,
     canvas_height: f32,
     canvas_width: f32
@@ -143,7 +143,7 @@ impl Sprite {
       1.0,
       1.0,
       1.0,
-      0.9
+      1.0
     );
 
     gl.uniform1f(Some(&self.u_opacity), 1.);
