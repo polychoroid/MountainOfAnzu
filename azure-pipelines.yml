@@ -16,6 +16,7 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
+    curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
     npm install
     wasm-pack build
     npm run build
