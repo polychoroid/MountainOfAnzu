@@ -21,3 +21,8 @@ steps:
     wasm-pack build
     npm run build
   displayName: 'npm install and build'
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'Anzu Artifacts'
+    publishLocation: 'pipeline'
