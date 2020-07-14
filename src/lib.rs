@@ -40,8 +40,8 @@ impl GameClient {
     let mut sprites = Vec::new();
     
     for _ in 1..250 {
-      let width = (rng.next_u32() % 64) as u8;
-      let height = (rng.next_u32() % 64) as u8;
+      let width = (rng.next_u32() % 96) as u8;
+      let height = (rng.next_u32() % 96) as u8;
 
       let vy = GameClient::negative_energy(rng.next_u32()) * (rng.next_u32() % 1500) as f32 / 100000.;
       let vx = GameClient::negative_energy(rng.next_u32()) * (rng.next_u32() % 1500) as f32 / 100000.;
@@ -71,7 +71,7 @@ impl GameClient {
     Ok(())
   }
 
-  pub fn render(&mut self, height: f32, width: f32) -> Result<(), JsValue> {
+  pub fn render(&mut self, height: f32, width: f32) {
     self.display.clear();
 
     let canvas = display::Canvas {
@@ -82,10 +82,11 @@ impl GameClient {
     self.display.render_background();
 
     for index in 0..self.sprites.len() {
+      self.sprites[index].mechanics.gravity();
+      self.sprites[index].mechanics.step();
       self.sprites[index].mechanics.edge_bounce();
 
       self.display.render_sprite(&canvas, &self.sprites[index]);
-    }
-    Ok(())
+    };
   }
 }

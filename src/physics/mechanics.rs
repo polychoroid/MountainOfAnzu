@@ -11,34 +11,43 @@ impl Mechanics {
     }
   }
 
+  pub fn step(&mut self) {
+    self.position[0] += self.velocity[0];
+    self.position[1] += self.velocity[1];
+  }
+
+  pub fn gravity(&mut self) {
+    self.velocity[0] += -0.0009;
+  }
+
   pub fn edge_bounce(&mut self) {
     // TODO: This is so procedural it hurts my feelings.
-    if self.position[0] <= 1.0 && self.position[0] >= -1.0 {
-      self.position[0] += self.velocity[0];
-    }
-
     if self.position[0] >= 1.0 {
-      self.velocity[0] = self.velocity[0] * -1.0;
+      self.velocity[0] = self.velocity[0] * -0.999;
       self.position[0] = 1.0;
     }
 
     if self.position[0] <= -1.0 {
-      self.velocity[0] = self.velocity[0] * -1.0;
+      self.velocity[0] = self.velocity[0] * -0.999;
       self.position[0] = -1.0;
     }
 
-    if self.position[1] <= 1.0 && self.position[1] >= -1.0 {
-      self.position[1] += self.velocity[1];
-    }
-
     if self.position[1] >= 1.0 {
-      self.velocity[1] = self.velocity[1] * -1.0;
+      self.velocity[1] = self.velocity[1] * -0.999;
       self.position[1] = 1.0;
     }
 
     if self.position[1] <= -1.0 {
-      self.velocity[1] = self.velocity[1] * -1.0;
+      self.velocity[1] = self.velocity[1] * -0.999;
       self.position[1] = -1.0;
+    }
+  }
+
+  pub fn edge_to_center(&mut self) {
+    // TODO: This is so procedural it hurts my feelings.
+    if self.position[0] >= 1.0 || self.position[0] <= -1.0 ||self.position[1] >= 1.0 || self.position[1] <= -1.0 {
+      self.position[0] = 0.;
+      self.position[1] = 0.;
     }
   }
 }
