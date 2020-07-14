@@ -28,10 +28,6 @@ pub fn update_dynamic_data(time: f32, canvas_height: f32, canvas_width: f32) {
   });
 }
 
-pub fn get_curr_state() -> Arc<AppState> {
-  APP_STATE.lock().unwrap().clone()
-}
-
 pub struct AppState {
   pub canvas_height: f32,
   pub canvas_width: f32,
