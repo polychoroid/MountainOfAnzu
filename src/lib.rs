@@ -20,8 +20,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub struct GameClient {
-  display: display::wasm_webgl::WasmWebglDisplay,
-  sprites: Vec<icons::sprite::Sprite>,
+  display: display::wasm_webgl::WasmWebglScene
 }
 
 #[wasm_bindgen]
@@ -30,16 +29,14 @@ impl GameClient {
   pub fn new() -> Self {
     log("New game client requested.");
     console_error_panic_hook::set_once();
-    let gl = gl_setup::initialize_webgl_context().unwrap();
-
-    let display = display::wasm_webgl::WasmWebglDisplay::new(gl);
+    let gl = gl_setup::initialize_webgl_context().unwrap();    
 
     let seed = [1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16,17,18,19,20, 21,22,23,24, 25,26,27,28, 29,30,31,32];
     let mut rng = Lcg128Xsl64::from_seed(seed);
 
     let mut sprites = Vec::new();
     
-    for _ in 1..250 {
+    for _ in 1..1500 {
       let width = (rng.next_u32() % 96) as u8;
       let height = (rng.next_u32() % 96) as u8;
 
@@ -52,9 +49,10 @@ impl GameClient {
       ));
     }
 
+    let display = display::wasm_webgl::WasmWebglScene::new(gl, sprites);
+
     Self {
-      sprites: sprites,
-      display: display,
+      display: display
     }
   }
 
@@ -77,16 +75,8 @@ impl GameClient {
     let canvas = display::Canvas {
       height: height,
       width: width,
-    };
+    }; 
     
-    self.display.render_background();
-
-    for index in 0..self.sprites.len() {
-      self.sprites[index].mechanics.gravity();
-      self.sprites[index].mechanics.step();
-      self.sprites[index].mechanics.edge_bounce();
-
-      self.display.render_sprite(&canvas, &self.sprites[index]);
-    };
+    self.display.render_scene(&canvas);
   }
 }

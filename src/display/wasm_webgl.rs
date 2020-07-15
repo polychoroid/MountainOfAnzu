@@ -6,31 +6,26 @@ use wasm_bindgen::JsCast;
 use web_sys::WebGlRenderingContext as GL;
 use web_sys::*;
 
-pub struct WasmWebglDisplay {
-  gl: WebGlRenderingContext,
+pub struct BufferedSprite {
+  buffer: WebGlBuffer,
+  pub sprite: Sprite,
   program: WebGlProgram,
-  background: WebGlProgram,
+  u_color: WebGlUniformLocation,
+  u_opacity: WebGlUniformLocation,
+  u_transform: WebGlUniformLocation
 }
 
-impl WasmWebglDisplay {
-  pub fn new(gl: WebGlRenderingContext) -> Self {
-    let program = WasmWebglDisplay::link_program(
-      &gl,
-      super::super::display::shaders::vertex::sprite::SHADER,
-      super::super::display::shaders::fragment::sprite::SHADER,
-    )
-    .unwrap();
+pub struct WasmWebglScene {
+  gl: WebGlRenderingContext,
+  buffered_sprites: Vec<BufferedSprite>
+}
 
-    let background = WasmWebglDisplay::link_program(
-      &gl,
-      super::super::display::shaders::vertex::color_2d_gradient::SHADER,
-      super::super::display::shaders::fragment::color_2d_gradient::SHADER,
-    )
-    .unwrap();
+impl WasmWebglScene {
+  pub fn new(gl: WebGlRenderingContext, sprites: Vec<Sprite>) -> Self {
+    let buffered_sprites = Self::buffer_sprites(&gl, sprites);
 
-    Self {
-      program: program,
-      background: background,
+    WasmWebglScene {
+      buffered_sprites: buffered_sprites,
       gl: gl,
     }
   }
@@ -74,10 +69,10 @@ impl WasmWebglDisplay {
       .ok_or_else(|| String::from("Error creating program"))?;
 
     let vert_shader =
-      WasmWebglDisplay::compile_shader(&gl, GL::VERTEX_SHADER, vert_source).unwrap();
+      WasmWebglScene::compile_shader(&gl, GL::VERTEX_SHADER, vert_source).unwrap();
 
     let frag_shader =
-      WasmWebglDisplay::compile_shader(&gl, GL::FRAGMENT_SHADER, frag_source).unwrap();
+      WasmWebglScene::compile_shader(&gl, GL::FRAGMENT_SHADER, frag_source).unwrap();
 
     gl.attach_shader(&program, &vert_shader);
     gl.attach_shader(&program, &frag_shader);
@@ -97,39 +92,122 @@ impl WasmWebglDisplay {
     }
   }
 
-  pub fn render_background(&self) {
-    self.gl.use_program(Some(&self.background));
+  fn buffer_sprites(gl: &WebGlRenderingContext, mut sprites: Vec<Sprite>) -> Vec<BufferedSprite> {
+    let mut buffered_sprites = Vec::new();
 
-    let indices_rect: [u16; 6] = [0, 1, 2, 2, 1, 3];
+    while !sprites.is_empty() {
+      match sprites.pop() {
+        Some(mut sprite) => {
+          let program = WasmWebglScene::link_program(
+            &gl,
+            super::super::display::shaders::vertex::sprite::SHADER,
+            super::super::display::shaders::fragment::sprite::SHADER,
+          )
+          .unwrap();
 
-      let indices_memory_buffer = wasm_bindgen::memory()
-      .dyn_into::<WebAssembly::Memory>()
-      .unwrap()
-      .buffer();
-      let indices_location = indices_rect.as_ptr() as u32 / 2;
-      let indices_array = js_sys::Uint16Array::new(&indices_memory_buffer).subarray(
-          indices_location,
-          indices_location + indices_rect.len() as u32
-      );
-      let buffer_indices = self.gl.create_buffer().unwrap();
-      self.gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&buffer_indices));
-      self.gl.buffer_data_with_array_buffer_view(
+          let box_memory_buffer = wasm_bindgen::memory()
+          .dyn_into::<WebAssembly::Memory>()
+          .unwrap()
+          .buffer();
+    
+        let vert_array = js_sys::Float32Array::new(&box_memory_buffer).subarray(
+          sprite.verticies_location(),
+          sprite.verticies_location() + sprite.sprite_box.len() as u32,
+        );
+    
+        let sprite_box_buffer = gl
+          .create_buffer()
+          .ok_or("failed to create buffer")
+          .unwrap();
+        gl.bind_buffer(GL::ARRAY_BUFFER, Some(&sprite_box_buffer));
+        gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vert_array, GL::STATIC_DRAW);
+    
+        let indices_memory_buffer = wasm_bindgen::memory()
+          .dyn_into::<WebAssembly::Memory>()
+          .unwrap()
+          .buffer();
+    
+        let indices_array = js_sys::Uint16Array::new(&indices_memory_buffer).subarray(
+          sprite.indices_location(),
+          sprite.indices_location() + sprite.box_indicies.len() as u32,
+        );
+    
+        sprite.set_index_count(indices_array.length() as i32);
+    
+        let box_indicies_buffer = gl.create_buffer().unwrap();
+        gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&box_indicies_buffer));
+        gl.buffer_data_with_array_buffer_view(
           GL::ELEMENT_ARRAY_BUFFER,
           &indices_array,
           GL::STATIC_DRAW,
-      );
+        );
+    
+        buffered_sprites.push(BufferedSprite {
+          sprite: sprite,
+          buffer: sprite_box_buffer,          
+          u_color: gl.get_uniform_location(&program, "uColor").unwrap(),
+          u_opacity: gl.get_uniform_location(&program, "uOpacity").unwrap(),
+          u_transform: gl.get_uniform_location(&program, "uTransform").unwrap(),
+          program: program,
+        })
+        }
+        None => panic!()
+      }      
+    }
+    buffered_sprites
+  }
+
+  pub fn render_scene(&mut self, canvas: &Canvas) {
+    self.render_background();
+    for index in 0..self.buffered_sprites.len() {     
+      self.render_sprite(&canvas, &self.buffered_sprites[index]);
+      self.buffered_sprites[index].sprite.mechanics.gravity();
+      self.buffered_sprites[index].sprite.mechanics.step();
+      self.buffered_sprites[index].sprite.mechanics.edge_bounce();
+    }
+  }
+
+  fn render_background(&self) {
+    let background = WasmWebglScene::link_program(
+      &self.gl,
+      super::super::display::shaders::vertex::color_2d_gradient::SHADER,
+      super::super::display::shaders::fragment::color_2d_gradient::SHADER,
+    )
+    .unwrap();
+
+    self.gl.use_program(Some(&background));
+
+    let indices_rect: [u16; 6] = [0, 1, 2, 2, 1, 3];
+
+    let indices_memory_buffer = wasm_bindgen::memory()
+      .dyn_into::<WebAssembly::Memory>()
+      .unwrap()
+      .buffer();
+    let indices_location = indices_rect.as_ptr() as u32 / 2;
+    let indices_array = js_sys::Uint16Array::new(&indices_memory_buffer).subarray(
+      indices_location,
+      indices_location + indices_rect.len() as u32,
+    );
+    let buffer_indices = self.gl.create_buffer().unwrap();
+    self
+      .gl
+      .bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&buffer_indices));
+    self.gl.buffer_data_with_array_buffer_view(
+      GL::ELEMENT_ARRAY_BUFFER,
+      &indices_array,
+      GL::STATIC_DRAW,
+    );
 
     let verticies_rect: [f32; 8] = [0., 1., 0., 0., 1., 1., 1., 0.];
 
     let u_opacity = self
       .gl
-      .get_uniform_location(&self.background, "uOpacity")
+      .get_uniform_location(&background, "uOpacity")
       .unwrap();
     let u_transform = self
       .gl
-      .get_uniform_location(&self.background, "uTransform")
+      .get_uniform_location(&background, "uTransform")
       .unwrap();
-    
     let memory_buffer = wasm_bindgen::memory()
       .dyn_into::<WebAssembly::Memory>()
       .unwrap()
@@ -211,96 +289,39 @@ impl WasmWebglDisplay {
   }
 
   // This function can be made to render any generic renderable data structure
-  pub fn render_sprite(&self, canvas: &Canvas, sprite: &Sprite) {
-    self.gl.use_program(Some(&self.program));
-
-    let sprite_box: [f32; 8] = [0., 1., 0., 0., 1., 1., 1., 0.];
-
-    let u_color = self
-      .gl
-      .get_uniform_location(&self.program, "uColor")
-      .unwrap();
-    let u_opacity = self
-      .gl
-      .get_uniform_location(&self.program, "uOpacity")
-      .unwrap();
-    let u_transform = self
-      .gl
-      .get_uniform_location(&self.program, "uTransform")
-      .unwrap();
-
-    let box_memory_buffer = wasm_bindgen::memory()
-      .dyn_into::<WebAssembly::Memory>()
-      .unwrap()
-      .buffer();
-    let verticies_location = sprite_box.as_ptr() as u32 / 4;
-    let vert_array = js_sys::Float32Array::new(&box_memory_buffer).subarray(
-      verticies_location,
-      verticies_location + sprite_box.len() as u32,
-    );
-    let sprite_box_buffer = self.gl.create_buffer().ok_or("failed to create buffer").unwrap();
-    self
-      .gl
-      .bind_buffer(GL::ARRAY_BUFFER, Some(&sprite_box_buffer));
-    self
-      .gl
-      .buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vert_array, GL::STATIC_DRAW);
-
-    // TODO: Add texture coordinates;
-
-    let box_indicies: [u16; 6] = [0, 1, 2, 2, 1, 3];
-
-    let indices_memory_buffer = wasm_bindgen::memory()
-      .dyn_into::<WebAssembly::Memory>()
-      .unwrap()
-      .buffer();
-    let indices_location = box_indicies.as_ptr() as u32 / 2;
-    let indices_array = js_sys::Uint16Array::new(&indices_memory_buffer).subarray(
-      indices_location,
-      indices_location + box_indicies.len() as u32,
-    );
-    let box_indicies_buffer = self.gl.create_buffer().unwrap();
-    self
-      .gl
-      .bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&box_indicies_buffer));
-    self.gl.buffer_data_with_array_buffer_view(
-      GL::ELEMENT_ARRAY_BUFFER,
-      &indices_array,
-      GL::STATIC_DRAW,
-    );
-
-    let index_count = indices_array.length() as i32;
+  fn render_sprite(&self, canvas: &Canvas, sprite: &BufferedSprite) {
+    self.gl.use_program(Some(&sprite.program));    
 
     self
       .gl
-      .bind_buffer(GL::ARRAY_BUFFER, Some(&sprite_box_buffer));
+      .bind_buffer(GL::ARRAY_BUFFER, Some(&sprite.buffer));
     self
       .gl
       .vertex_attrib_pointer_with_i32(0, 2, GL::FLOAT, false, 0, 0);
     self.gl.enable_vertex_attrib_array(0);
 
-    self.gl.uniform4f(Some(&u_color), 1.0, 1.0, 1.0, 1.0);
-    self.gl.uniform1f(Some(&u_opacity), 1.);
+    self.gl.uniform4f(Some(&sprite.u_color), 1.0, 1.0, 1.0, 1.0);
+    self.gl.uniform1f(Some(&sprite.u_opacity), 1.);
 
     let translation_mat = cf::translation_matrix(
-      sprite.mechanics.position[1],
-      sprite.mechanics.position[0],
+      sprite.sprite.mechanics.position[1],
+      sprite.sprite.mechanics.position[0],
       0.,
     );
 
     let scale_mat = cf::scaling_matrix(
-      sprite.width / canvas.width,
-      sprite.height / canvas.height,
+      sprite.sprite.width / canvas.width,
+      sprite.sprite.height / canvas.height,
       0.,
     );
 
     let transform_mat = cf::mult_matrix_4(scale_mat, translation_mat);
     self
       .gl
-      .uniform_matrix4fv_with_f32_array(Some(&u_transform), false, &transform_mat);
+      .uniform_matrix4fv_with_f32_array(Some(&sprite.u_transform), false, &transform_mat);
 
     self
       .gl
-      .draw_elements_with_i32(GL::TRIANGLES, index_count, GL::UNSIGNED_SHORT, 0);
+      .draw_elements_with_i32(GL::TRIANGLES, sprite.sprite.index_count, GL::UNSIGNED_SHORT, 0);
   }
 }

@@ -17,28 +17,28 @@ impl Mechanics {
   }
 
   pub fn gravity(&mut self) {
-    self.velocity[0] += -0.0009;
+    self.velocity[0] += -0.000059;
   }
 
   pub fn edge_bounce(&mut self) {
     // TODO: This is so procedural it hurts my feelings.
     if self.position[0] >= 1.0 {
-      self.velocity[0] = self.velocity[0] * -0.999;
+      self.velocity[0] = self.velocity[0] * -0.799;
       self.position[0] = 1.0;
     }
 
     if self.position[0] <= -1.0 {
-      self.velocity[0] = self.velocity[0] * -0.999;
+      self.velocity[0] = self.velocity[0] * -0.799;
       self.position[0] = -1.0;
     }
 
     if self.position[1] >= 1.0 {
-      self.velocity[1] = self.velocity[1] * -0.999;
+      self.velocity[1] = self.velocity[1] * -0.799;
       self.position[1] = 1.0;
     }
 
     if self.position[1] <= -1.0 {
-      self.velocity[1] = self.velocity[1] * -0.999;
+      self.velocity[1] = self.velocity[1] * -0.799;
       self.position[1] = -1.0;
     }
   }
