@@ -39,7 +39,7 @@ rust.then(m => {
 
       let elapsedTime = currentTime - intitialTime;
       client.update(elapsedTime, window.innerHeight, window.innerWidth);
-      client.render();
+      client.render(window.innerHeight, window.innerWidth);
     }
   }
 

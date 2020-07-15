@@ -13,6 +13,8 @@ js-sys = "0.3.19"
 lazy_static = "1.3.0"
 nalgebra = "0.18.0"
 wasm-bindgen = "0.2.60"
+rand_core = "0.5.0"
+rand_pcg = "0.2.1"
 
 [dependencies.web-sys]
 version = "0.3.4"

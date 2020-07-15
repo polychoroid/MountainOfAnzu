@@ -1,15 +1,16 @@
 use wasm_bindgen::prelude::*;
-use web_sys::*;
-use web_sys::WebGlRenderingContext as GL;
+use rand_core::{RngCore, SeedableRng};
+use rand_pcg::{Lcg128Xsl64};
 
 #[macro_use]
 extern crate lazy_static;
 
 mod app_state;
 mod common_functions;
+mod display;
 mod gl_setup;
-mod programs;
-mod shaders;
+mod icons;
+mod physics;
 
 #[wasm_bindgen]
 extern "C" {
@@ -19,9 +20,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub struct GameClient {
-  gl: WebGlRenderingContext,
-  program_sprites: Vec<programs::Sprite>,
-  background: programs::Color2DGradient,
+  display: display::wasm_webgl::WasmWebglScene
 }
 
 #[wasm_bindgen]
@@ -30,50 +29,38 @@ impl GameClient {
   pub fn new() -> Self {
     log("New game client requested.");
     console_error_panic_hook::set_once();
-    let gl = gl_setup::initialize_webgl_context().unwrap();
+    let gl = gl_setup::initialize_webgl_context().unwrap();    
 
-    let sprites = vec![
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.012, -0.012]),
-      programs::Sprite::new(&gl, 64, 32, vec![-1., 0.], vec![0.015, 0.013]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.017, -0.015]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.019, 0.016]),
-      programs::Sprite::new(&gl, 32, 16, vec![1., 0.], vec![-0.018, -0.014]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.017, 0.013]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.016, -0.012]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.015, 0.01]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.013, -0.011]),
-      programs::Sprite::new(&gl, 64, 64, vec![-1., 0.], vec![0.012, 0.019]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.011, -0.018]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.01, 0.014]),
-      programs::Sprite::new(&gl, 16, 16, vec![1., 0.], vec![-0.015, -0.014]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![-0.017, 0.016]),
-      programs::Sprite::new(&gl, 16, 16, vec![1., 0.], vec![0.018, -0.019]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![-0.019, 0.012]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![0.017, -0.013]),
-      programs::Sprite::new(&gl, 16, 32, vec![-1., 0.], vec![-0.014, 0.014]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![0.015, -0.016]),
-      programs::Sprite::new(&gl, 32, 64, vec![-1., 0.], vec![-0.013, 0.015]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.017, 0.013]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.016, -0.012]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.015, 0.01]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.013, -0.011]),
-      programs::Sprite::new(&gl, 64, 64, vec![1., 0.], vec![-0.012, 0.019]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.011, -0.018]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.01, 0.014]),
-      programs::Sprite::new(&gl, 16, 16, vec![-1., 0.], vec![0.015, -0.014]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.017, 0.016]),
-      programs::Sprite::new(&gl, 16, 16, vec![-1., 0.], vec![0.018, -0.019]),
-      programs::Sprite::new(&gl, 32, 32, vec![1., 0.], vec![-0.019, 0.012]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.017, -0.013]),
-      programs::Sprite::new(&gl, 16, 32, vec![1., 0.], vec![-0.014, 0.014]),
-      programs::Sprite::new(&gl, 32, 32, vec![-1., 0.], vec![0.015, -0.016]),
-      programs::Sprite::new(&gl, 32, 64, vec![1., 0.], vec![-0.013, 0.015]),
-      ];
+    let seed = [1,2,3,4, 5,6,7,8, 9,10,11,12, 13,14,15,16,17,18,19,20, 21,22,23,24, 25,26,27,28, 29,30,31,32];
+    let mut rng = Lcg128Xsl64::from_seed(seed);
+
+    let mut sprites = Vec::new();
+    
+    for _ in 1..1500 {
+      let width = (rng.next_u32() % 96) as u8;
+      let height = (rng.next_u32() % 96) as u8;
+
+      let vy = GameClient::negative_energy(rng.next_u32()) * (rng.next_u32() % 1500) as f32 / 100000.;
+      let vx = GameClient::negative_energy(rng.next_u32()) * (rng.next_u32() % 1500) as f32 / 100000.;
+      let position = vec![0., 0.];
+      let velocity = vec![vx, vy];
+      sprites.push(icons::sprite::Sprite::new(
+        width, height, position, velocity,
+      ));
+    }
+
+    let display = display::wasm_webgl::WasmWebglScene::new(gl, sprites);
 
     Self {
-      program_sprites: sprites,
-      background: programs::Color2DGradient::new(&gl),
-      gl: gl,
+      display: display
+    }
+  }
+
+  pub fn negative_energy(number: u32) -> f32 {
+    match number % 2 {
+      1 | 2 => -1.,
+      0 => 1.,
+      _ => 0.
     }
   }
 
@@ -82,28 +69,14 @@ impl GameClient {
     Ok(())
   }
 
-  pub fn render(&mut self)
-  {
-    self.gl.clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT);
+  pub fn render(&mut self, height: f32, width: f32) {
+    self.display.clear();
 
-    let curr_state = app_state::get_curr_state();
-
-    self.background.render(
-      &self.gl
-    );
-
-    for index in 0..self.program_sprites.len()
-    {
-      self.program_sprites[index].render(
-        &self.gl,
-        curr_state.control_bottom,
-        curr_state.control_top,
-        curr_state.control_left,
-        curr_state.control_right,
-        curr_state.canvas_height,
-        curr_state.canvas_width
-      );
-    }
+    let canvas = display::Canvas {
+      height: height,
+      width: width,
+    }; 
     
+    self.display.render_scene(&canvas);
   }
 }
