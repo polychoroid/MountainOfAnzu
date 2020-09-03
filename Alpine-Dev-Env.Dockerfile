@@ -6,7 +6,6 @@ RUN apk update \
     && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh \
     && git clone https://github.com/polychoroid/MountainOfAnzu.git
 
-RUN PATH=$HOME/.cargo/env:$PATH \
-    && export PATH
+ENV PATH=/root/.cargo/bin:${PATH}
 
 EXPOSE 8088
