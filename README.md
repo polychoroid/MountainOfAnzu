@@ -3,16 +3,28 @@ Action RPG to teach myself rust/wasm/webgl. There's not much going on here yet, 
 
 ## Getting Started
 
-It's real easy.
+There's two ways to get started. The easy way and the other easy way.
+
+The easy way.
 
 1. Clone the development branch
-2. [Install npm](https://www.npmjs.com/get-npm)
-3. [Install rustup](https://www.rust-lang.org/tools/install)
-4. [Install wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-5.     npm install
-6.     wasm-pack build
-7.     npm run dev
-8. Behold the squares
+1. [Install npm](https://www.npmjs.com/get-npm)
+1. [Install rustup](https://www.rust-lang.org/tools/install)
+1. [Install wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+1. npm install
+1. wasm-pack build
+1. npm run dev
+1. Behold the squares
+
+The other easy way. 
+
+1. Open VS Code
+1. Install the remote development extension
+1. Connect to the Alpine-Dev-Env.Dockerfile defined container
+1. npm install
+1. wasm-pack build
+1. npm run dev
+1. Behold the squares
 
 <!-- ### Prerequisites
 
