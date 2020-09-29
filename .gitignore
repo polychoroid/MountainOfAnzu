@@ -29,4 +29,5 @@ Cargo.lock
 .vscode
 .cache
 .eslintcache
+.devcontainer
 package-lock.json
