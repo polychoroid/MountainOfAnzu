@@ -8,5 +8,4 @@ RUN apk update \
 ENV PATH=/root/.cargo/bin:${PATH}
 
 EXPOSE 8088
-
  

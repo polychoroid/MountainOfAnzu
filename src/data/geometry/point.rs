@@ -1,3 +1,8 @@
+// x is horizontal 
+// y is vertical
+// z in right handed cross product of x and y
+// w is maintented for rotations. 
+
 struct Point {
     x: f32,
     y: f32,

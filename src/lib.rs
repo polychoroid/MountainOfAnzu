@@ -2,10 +2,6 @@ use wasm_bindgen::prelude::*;
 use rand_core::{RngCore, SeedableRng};
 use rand_pcg::{Lcg128Xsl64};
 
-#[macro_use]
-extern crate lazy_static;
-
-mod app_state;
 mod common_functions;
 mod display;
 mod gl_setup;
@@ -36,7 +32,7 @@ impl GameClient {
 
     let mut sprites = Vec::new();
     
-    for _ in 1..1500 {
+    for _ in 1..15 {
       let width = (rng.next_u32() % 96) as u8;
       let height = (rng.next_u32() % 96) as u8;
 
@@ -62,11 +58,6 @@ impl GameClient {
       0 => 1.,
       _ => 0.
     }
-  }
-
-  pub fn update(&mut self, time: f32, height: f32, width: f32) -> Result<(), JsValue> {
-    app_state::update_dynamic_data(time, height, width);
-    Ok(())
   }
 
   pub fn render(&mut self, height: f32, width: f32) {

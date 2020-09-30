@@ -16,8 +16,9 @@ The easy way.
 1. npm run dev
 1. Behold the squares
 
-The other easy way. 
+The other easy way, with containerized development environment. 
 
+1. Clone the development branch
 1. Open VS Code
 1. Install the remote development extension
 1. Connect to the Alpine-Dev-Env.Dockerfile defined container
@@ -26,19 +27,50 @@ The other easy way.
 1. npm run dev
 1. Behold the squares
 
-<!-- ### Prerequisites
+### Prerequisites
 
-You should have nodejs
+The Mountain of Anzu requres npm, rust, and wasm-pack for rust.
 
 ```
-Give examples
+npm -v
+6.14.5
+```
+
+```
+cargo -V
+cargo 1.42.0
+```
+
+```
+wasm-pack -V
+wasm-pack 0.81
 ```
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+There's always more than one way to get your environment set up.
+The two methods that I use are described below, your milage may vary.
 
-Say what the step will be
+## Method one: local installation
+
+Follow the instructions for your operating system and install these following packages:
+
+[Install npm](https://www.npmjs.com/get-npm)
+
+[Install rustup](https://www.rust-lang.org/tools/install)
+
+[Install wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+
+You will also need git to clone the repo.
+
+Once you have the required packages installed and the development branch cloned, you should be able to build the source and run a local node server to host the content.
+
+## Method two: developing in a container
+The Alpine-Dev-Env.Dockerfile contains everything you will need to begin developing this project. 
+
+Refer to your operating system's instructions to install docker and confiugre it to run Linux containers.
+
+<!--Say what the step will be
 
 ```
 Give the example
@@ -88,19 +120,19 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). -->
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Andrew Dunnells** - *Initial work* - [Polychoroid](https://github.com/Polychoroid)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/Polychoroid/MountainOfAnzu/contributors) who participated in this project.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the Mozilla Public License, Version 2.0 - see the [LICENSE.md](LICENSE.md) file for details
 
-## Acknowledgments
+<!--## Acknowledgments
 
 * Hat tip to anyone whose code was used
 * Inspiration

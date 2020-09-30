@@ -3,7 +3,7 @@
 //
 // a -- b
 // |    |
-// c -- d
+// d -- c
 //
 // x is horizontal 
 // y is vertical
@@ -37,8 +37,8 @@ impl Shape for Rectangle {
    pub fn boundry() -> Vec<Point> {
     let a = Point::new(self.position.x - (.5 * width), self.position.y + (.5 * height));
     let b = Point::new(self.position.x + (.5 * width), self.position.y + (.5 * height));    
-    let c = Point::new(self.position.x - (.5 * width), self.position.y - (.5 * height));
-    let d = Point::new(self.position.x + (.5 * width), self.position.y - (.5 * height));
+    let c = Point::new(self.position.x + (.5 * width), self.position.y - (.5 * height));
+    let d = Point::new(self.position.x - (.5 * width), self.position.y - (.5 * height));
     return vec![a, b, c, d];
    }
 }
@@ -68,8 +68,8 @@ impl Shape for Square {
    pub fn boundry() -> Vec<Point> {
     let a = Point::new(self.position.x - (.5 * side), self.position.y + (.5 * side));
     let b = Point::new(self.position.x + (.5 * side), self.position.y + (.5 * side));    
-    let c = Point::new(self.position.x - (.5 * side), self.position.y - (.5 * side));
-    let d = Point::new(self.position.x + (.5 * side), self.position.y - (.5 * side));
+    let c = Point::new(self.position.x + (.5 * side), self.position.y - (.5 * side));
+    let d = Point::new(self.position.x - (.5 * side), self.position.y - (.5 * side));
     return vec![a, b, c, d];
    }
 }

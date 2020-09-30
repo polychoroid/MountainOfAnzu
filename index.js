@@ -12,7 +12,6 @@ rust.then(m => {
   
   const client = new m.GameClient();
 
-  const intitialTime = Date.now();
   let lastDrawTime = -1;
 
   function render()
@@ -37,8 +36,6 @@ rust.then(m => {
         gl.viewport(0,0, window.innerWidth, window.innerHeight);
       }
 
-      let elapsedTime = currentTime - intitialTime;
-      client.update(elapsedTime, window.innerHeight, window.innerWidth);
       client.render(window.innerHeight, window.innerWidth);
     }
   }
