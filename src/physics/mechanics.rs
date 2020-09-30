@@ -45,10 +45,10 @@ impl Mechanics {
     }
   }
 
-  //pub fn edge_to_center(&mut self) {
-  //  if self.position[0] >= 1.0 || self.position[0] <= -1.0 ||self.position[1] >= 1.0 || self.position[1] <= -1.0 {
-  //    self.position[0] = 0.;
-  //    self.position[1] = 0.;
-  //  }
-  //}
+  pub fn edge_to_center(&mut self) {
+    if self.position[0] >= 1.0 || self.position[0] <= -1.0 ||self.position[1] >= 1.0 || self.position[1] <= -1.0 {
+      self.position[0] = 0.;
+      self.position[1] = 0.;
+    }
+  }
 }

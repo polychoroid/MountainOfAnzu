@@ -11,7 +11,6 @@ crate-type = ["cdylib"]
 console_error_panic_hook = "=0.1.5"
 js-sys = "0.3.19"
 wasm-bindgen = "0.2.60"
-wasm-bindgen-test = "0.2"
 rand_core = "0.5.0"
 rand_pcg = "0.2.1"
 
