@@ -1,0 +1,22 @@
+# Build and run unit tests before pr
+
+pool:
+    vmImage: 'ubuntu-latest'
+  
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
+  
+  - script: |
+      curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
+      npm install
+      cargo test
+      wasm-pack build
+      npm run test
+      wasm-pack test --chrome
+      wasm-pack test --firefox
+      wasm-pack test --safari
+      wasm-pack test --node
+    displayName: 'build and test'
