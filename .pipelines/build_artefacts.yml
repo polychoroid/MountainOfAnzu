@@ -1,7 +1,4 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+# Builds deployment artifacts after PR to development is completed
 
 trigger:
 - development
